@@ -1,0 +1,87 @@
+﻿@using System.Globalization
+@using Microsoft.Research.Yakima.Website.Extensions
+@using Microsoft.Research.Yakima.Website.Models
+@using Microsoft.Research.Yakima.Website.Resources;
+@model Author
+
+@section scripts
+{
+    @Scripts.Render("~/bundles/dygraph")
+}
+
+@if (this.Model == null)
+{
+    Html.RenderPartial("ErrorPartialView");
+    ViewBag.Title = CommonStrings.Error;
+}
+else
+{
+    ViewBag.Title = string.Format(CultureInfo.CurrentCulture, CommonStrings.Title_Yakima_Shared, Html.Raw(this.Model.AuthorModel.Name.HtmlSanitize()));
+    ViewBag.ShowSearchBox = true;
+
+ 
+    <div id="authContainer" class="row bgColor3">
+        <div id="leftColumn" class="large-2 columns">&nbsp;</div>
+
+        <div id="middleColumn" class="large-8 columns bgColor1">
+            <div class="row">
+                <div class="small-12 columns noPadding marginT15 titleIconContainer">
+                    <h1 id="authName_@this.Model.AuthorModel.Id" class="marginT20">
+                        @(string.IsNullOrEmpty(this.Model.AuthorModel.Name) ? Html.Raw(CommonStrings.Text_NoneAvailable) : Html.Raw(this.Model.AuthorModel.Name.HtmlSanitize()))
+
+                        @if (!string.IsNullOrWhiteSpace(this.Model.AuthorModel.NativeName) && !string.Equals(this.Model.AuthorModel.Name, this.Model.AuthorModel.NativeName))
+                        {
+                            <text>(@Html.Raw(Model.AuthorModel.NativeName.HtmlSanitize())</text>
+                        }
+                    </h1>
+                    @if (!string.IsNullOrEmpty(this.Model.AuthorModel.PhotoUrl))
+                    {
+                        <img class="titleIcon" id="authImage_@Model.AuthorModel.Id" src="@this.Model.AuthorModel.PhotoUrl" alt="@Model.AuthorModel.Name"/>
+                    }
+                    else
+                    {
+                        <img class="titleIcon" src="~/Content/Images/IconAuthorLarge.png" alt="@AuthorStrings.Text_MissingImage" />                      
+                    }
+                </div>
+
+                </div>
+            <div class="row">
+                <div class="small-12 columns noPadding dropShadow marginT15"></div>
+            </div>
+            @Html.Partial("DetailsProfile")
+            @Html.Partial("DetailsPublications")
+        </div>
+
+        <div id="rightColumn" class="large-2 columns">
+            @Html.Partial("RelatedItems", this.Model.RelatedCoauthors)
+        </div>
+    </div>
+    
+    <div id="addRemovePaperDialog" class="reveal-modal expand"></div>
+    <div id="editProfileDialog" class="reveal-modal expand"></div>
+    <div id="addPaperDialog" class="reveal-modal expand"></div>
+
+    <script type="text/javascript">
+        var expText = '@CommonStrings.ExpandThisSection';
+        var colText = '@CommonStrings.CollapseThisSection';
+        
+        $(document).ready(function () {
+            Website.ResetContentColumnHeight();
+            Website.AddSharedExpander(false, expText, colText);
+
+            $("#addRemovePaperDialog").on('opened', function () {
+                Website.AddSharedExpander(false, expText, colText);
+            });
+
+            $("#editProfileDialog").on('opened', function () {
+                Author.EnableOrganizationsAutoComplete('@Url.Action("Organizations", "MasterData")');
+            });
+        });
+
+        $(window).resize(function () {
+            Website.ResetContentColumnHeight();
+            Website.AddSharedExpander(true, expText, colText);
+            Author.ResizeOrganizationsResultsMenu();
+        });
+    </script>
+}
